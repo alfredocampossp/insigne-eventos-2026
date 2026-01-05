@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useDeals } from "@/hooks/useDeals";
 import { useCompanies } from "@/hooks/useCompanies";
 import { useContacts } from "@/hooks/useContacts";
@@ -37,10 +37,23 @@ export default function Deals() {
   const { companies } = useCompanies();
   const { contacts, addContact, updateContact, deleteContact } = useContacts();
   const { proposals } = useProposals();
+  const [searchParams] = new URL(window.location.href).searchParams;
+  const dealIdFromUrl = searchParams.get("dealId");
   
   const [searchTerm, setSearchTerm] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingDeal, setEditingDeal] = useState<Deal | null>(null);
+  
+  // Se houver dealId na URL, abrir o modal com esse deal
+  useEffect(() => {
+    if (dealIdFromUrl && deals.length > 0) {
+      const deal = deals.find(d => d.id === dealIdFromUrl);
+      if (deal) {
+        setEditingDeal(deal);
+        setIsDialogOpen(true);
+      }
+    }
+  }, [dealIdFromUrl, deals]);
   const [activeTab, setActiveTab] = useState("info");
   const [showContactForm, setShowContactForm] = useState(false);
   const [showScheduleForm, setShowScheduleForm] = useState(false);

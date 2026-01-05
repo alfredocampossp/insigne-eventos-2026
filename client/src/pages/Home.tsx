@@ -15,17 +15,26 @@ import { UpcomingTasksList } from "@/components/dashboard/UpcomingTasksList";
 import { TaskEditModal } from "@/components/dashboard/TaskEditModal";
 import { RecentPipelineView } from "@/components/dashboard/RecentPipelineView";
 import { Task } from "@/types";
+import { useLocation } from "wouter";
 
 export default function Home() {
   const { tasks, updateTask, deleteTask } = useTasks();
   const { deals } = useDeals();
+  const [, setLocation] = useLocation();
   
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
 
   const handleTaskClick = (task: Task) => {
-    setSelectedTask(task);
-    setIsTaskModalOpen(true);
+    // Se a tarefa está relacionada a um deal (contato agendado)
+    if (task.relatedTo?.type === "deal" && task.relatedTo?.id) {
+      // Navegar para a página de Deals com o deal selecionado
+      setLocation(`/deals?dealId=${task.relatedTo.id}`);
+    } else {
+      // Abrir modal de edição de tarefa
+      setSelectedTask(task);
+      setIsTaskModalOpen(true);
+    }
   };
 
   const handleTaskSave = async (updates: Partial<Task>) => {
