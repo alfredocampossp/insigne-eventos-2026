@@ -153,9 +153,7 @@ export const ProposalPDF = ({ proposal }: ProposalPDFProps) => (
     <Page size="A4" style={styles.page}>
       {/* Header */}
       <View style={styles.header}>
-        <View style={styles.logo}>
-          <Text style={styles.logoText}>I</Text>
-        </View>
+        <Image src="/logo.png" style={{ width: 120, height: 'auto' }} />
         <View style={styles.companyInfo}>
           <Text style={styles.companyName}>Insigne Eventos</Text>
           <Text style={styles.companyDetails}>Rua Exemplo, 123 - São Paulo, SP</Text>

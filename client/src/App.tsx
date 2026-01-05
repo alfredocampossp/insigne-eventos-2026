@@ -15,6 +15,8 @@ import Tasks from "@/pages/Tasks";
 import Financial from "@/pages/Financial";
 import Calendar from "@/pages/Calendar";
 import Reports from "@/pages/Reports";
+import Events from "@/pages/Events";
+import AdminDataImport from "@/pages/AdminDataImport";
 import NotFound from "@/pages/NotFound";
 
 function PrivateRoute({ component: Component, ...rest }: any) {
@@ -69,8 +71,14 @@ function Router() {
       <Route path="/reports">
         {() => <PrivateRoute component={Reports} />}
       </Route>
+      <Route path="/events">
+        {() => <PrivateRoute component={Events} />}
+      </Route>
       
       {/* Placeholder Routes for now */}
+      <Route path="/admin/import">
+        {() => <PrivateRoute component={AdminDataImport} />}
+      </Route>
       <Route path="/admin">
         {() => <PrivateRoute component={() => <div>Configurações (Em breve)</div>} />}
       </Route>

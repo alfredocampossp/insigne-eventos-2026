@@ -31,6 +31,8 @@ import { Plus, Search, FileText, Download, Eye, Trash2, Loader2, PlusCircle, Min
 import { Proposal, ProposalItem } from "@/types";
 import { PDFDownloadLink } from "@react-pdf/renderer";
 import { ProposalPDF } from "@/components/proposals/ProposalPDF";
+import { FileUpload } from "@/components/ui/file-upload";
+import { Paperclip, X } from "lucide-react";
 
 export default function Proposals() {
   const { proposals, loading, addProposal, deleteProposal } = useProposals();
@@ -42,7 +44,8 @@ export default function Proposals() {
     dealId: "",
     validUntil: "",
     notes: "",
-    taxRate: "0"
+    taxRate: "0",
+    attachments: [] as {url: string, name: string}[]
   });
   
   const [items, setItems] = useState<ProposalItem[]>([
@@ -110,13 +113,14 @@ export default function Proposals() {
       taxAmount,
       total,
       validUntil: formData.validUntil ? new Date(formData.validUntil).toISOString() : null,
-      notes: formData.notes
+      notes: formData.notes,
+      attachments: formData.attachments
     };
 
     await addProposal(proposalData);
     
     setIsDialogOpen(false);
-    setFormData({ dealId: "", validUntil: "", notes: "", taxRate: "0" });
+    setFormData({ dealId: "", validUntil: "", notes: "", taxRate: "0", attachments: [] });
     setItems([{ description: "", quantity: 1, unitPrice: 0, total: 0 }]);
   };
 
@@ -278,6 +282,41 @@ export default function Proposals() {
                   className="bg-white/50 min-h-[100px]"
                   placeholder="Condições de pagamento, prazos, etc."
                 />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Anexos</Label>
+                <div className="space-y-2">
+                  {formData.attachments.map((att, index) => (
+                    <div key={index} className="flex items-center justify-between p-2 border rounded-md bg-muted/50">
+                      <div className="flex items-center gap-2 overflow-hidden">
+                        <Paperclip className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
+                        <a href={att.url} target="_blank" rel="noopener noreferrer" className="text-sm truncate hover:underline text-primary">
+                          {att.name}
+                        </a>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6 text-muted-foreground hover:text-destructive"
+                        onClick={() => setFormData(prev => ({
+                          ...prev,
+                          attachments: prev.attachments.filter((_, i) => i !== index)
+                        }))}
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  ))}
+                  <FileUpload 
+                    path="proposals/attachments"
+                    onUploadComplete={(url, name) => setFormData(prev => ({
+                      ...prev,
+                      attachments: [...prev.attachments, { url, name }]
+                    }))}
+                  />
+                </div>
               </div>
 
               <div className="flex justify-end gap-2 mt-6">

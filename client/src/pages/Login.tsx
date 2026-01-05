@@ -51,9 +51,11 @@ export default function Login() {
 
       <Card className="w-full max-w-md glass border-white/20 shadow-xl">
         <CardHeader className="space-y-1 text-center">
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center text-white font-bold text-2xl mx-auto mb-4 shadow-lg shadow-primary/20">
-            I
-          </div>
+          <img 
+            src="/logo.png" 
+            alt="Insigne Eventos" 
+            className="h-16 w-auto mx-auto mb-6 object-contain"
+          />
           <CardTitle className="text-2xl font-display font-bold">Insigne Eventos</CardTitle>
           <CardDescription>
             {isSignUp ? "Crie sua conta de administrador" : "Entre com suas credenciais para acessar o sistema"}
