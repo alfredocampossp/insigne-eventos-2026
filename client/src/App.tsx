@@ -4,6 +4,7 @@ import { Route, Switch, useLocation } from "wouter";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import { useScheduledContactsSync } from "@/hooks/useScheduledContactsSync";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import Login from "@/pages/Login";
 import Home from "@/pages/Home";
@@ -34,6 +35,15 @@ function PrivateRoute({ component: Component, ...rest }: any) {
     <DashboardLayout>
       <Component {...rest} />
     </DashboardLayout>
+  );
+}
+
+function AppContent() {
+  // Ativar sincronização de contatos agendados
+  useScheduledContactsSync();
+
+  return (
+    <Router />
   );
 }
 
@@ -95,7 +105,7 @@ function App() {
         <AuthProvider>
           <TooltipProvider>
             <Toaster />
-            <Router />
+            <AppContent />
           </TooltipProvider>
         </AuthProvider>
       </ThemeProvider>

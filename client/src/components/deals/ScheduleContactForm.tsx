@@ -46,12 +46,28 @@ export function ScheduleContactForm({
 
     setIsSubmitting(true);
     try {
+      // Parsear a data no formato YYYY-MM-DD
+      const [year, month, day] = formData.date.split("-");
       const [hours, minutes] = formData.time.split(":");
-      const scheduledDate = new Date(formData.date);
-      scheduledDate.setHours(parseInt(hours), parseInt(minutes), 0);
+
+      // Criar data em horário local (não UTC)
+      const scheduledDate = new Date(
+        parseInt(year),
+        parseInt(month) - 1, // Mês é 0-indexed
+        parseInt(day),
+        parseInt(hours),
+        parseInt(minutes),
+        0,
+        0
+      );
+
+      console.log("Data local criada:", scheduledDate);
+      console.log("ISO String:", scheduledDate.toISOString());
 
       // Converter para Timestamp do Firebase
       const timestamp = Timestamp.fromDate(scheduledDate);
+
+      console.log("Timestamp criado:", timestamp);
 
       await onSubmit({
         dealId,

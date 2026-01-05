@@ -9,7 +9,8 @@ import {
   deleteDoc, 
   doc, 
   serverTimestamp,
-  where
+  where,
+  QueryConstraint
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { Task } from "@/types";
@@ -20,11 +21,18 @@ export function useTasks(filter?: { status?: string; priority?: string }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    let q = query(collection(db, "tasks"), orderBy("dueDate", "asc"));
+    // Construir constraints dinamicamente
+    const constraints: QueryConstraint[] = [orderBy("dueDate", "asc")];
     
     if (filter?.status) {
-      q = query(q, where("status", "==", filter.status));
+      constraints.push(where("status", "==", filter.status));
     }
+    
+    if (filter?.priority) {
+      constraints.push(where("priority", "==", filter.priority));
+    }
+
+    const q = query(collection(db, "tasks"), ...constraints);
     
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const data = snapshot.docs.map(doc => ({
@@ -40,7 +48,7 @@ export function useTasks(filter?: { status?: string; priority?: string }) {
     });
 
     return () => unsubscribe();
-  }, [filter?.status]);
+  }, [filter?.status, filter?.priority]);
 
   const addTask = async (task: Omit<Task, "id" | "createdAt" | "updatedAt">) => {
     try {
