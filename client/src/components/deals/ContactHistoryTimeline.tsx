@@ -1,11 +1,11 @@
-import { DealContactLog } from "@/types";
+import React from "react";
 import { Phone, Mail, Calendar, MessageSquare, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 interface ContactHistoryTimelineProps {
-  logs: DealContactLog[];
+  logs: any[];
   onDelete: (id: string) => Promise<void>;
 }
 
@@ -13,21 +13,21 @@ export function ContactHistoryTimeline({
   logs,
   onDelete,
 }: ContactHistoryTimelineProps) {
-  const typeIcons = {
+  const typeIcons: Record<string, React.JSX.Element> = {
     phone: <Phone className="w-4 h-4" />,
     email: <Mail className="w-4 h-4" />,
     meeting: <Calendar className="w-4 h-4" />,
     message: <MessageSquare className="w-4 h-4" />,
   };
 
-  const typeLabels = {
+  const typeLabels: Record<string, string> = {
     phone: "Chamada Telefônica",
     email: "E-mail",
     meeting: "Reunião",
     message: "Mensagem",
   };
 
-  const typeColors = {
+  const typeColors: Record<string, string> = {
     phone: "bg-blue-100 text-blue-700",
     email: "bg-purple-100 text-purple-700",
     meeting: "bg-green-100 text-green-700",
@@ -54,13 +54,13 @@ export function ContactHistoryTimeline({
             <div className="flex items-start justify-between gap-4">
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-2">
-                  <div className={`p-2 rounded-lg ${typeColors[log.type]}`}>
-                    {typeIcons[log.type]}
+                  <div className={`p-2 rounded-lg ${typeColors[log.type] || typeColors.phone}`}>
+                    {typeIcons[log.type] || typeIcons.phone}
                   </div>
                   <div>
                     <p className="font-semibold text-sm">{log.contactName}</p>
                     <p className="text-xs text-muted-foreground">
-                      {typeLabels[log.type]}
+                      {typeLabels[log.type] || "Contato"}
                       {log.duration && ` • ${log.duration} min`}
                     </p>
                   </div>
@@ -70,7 +70,7 @@ export function ContactHistoryTimeline({
                   <p className="text-sm font-medium mb-2">{log.subject}</p>
                 )}
 
-                <p className="text-sm text-foreground/80 mb-2">{log.notes}</p>
+                <p className="text-sm text-muted-foreground mb-2">{log.notes}</p>
 
                 <p className="text-xs text-muted-foreground">
                   {format(timestamp, "dd 'de' MMMM 'às' HH:mm", {
@@ -80,8 +80,8 @@ export function ContactHistoryTimeline({
               </div>
 
               <Button
-                variant="ghost"
                 size="sm"
+                variant="ghost"
                 onClick={() => log.id && onDelete(log.id)}
                 className="text-destructive hover:text-destructive hover:bg-destructive/10"
               >

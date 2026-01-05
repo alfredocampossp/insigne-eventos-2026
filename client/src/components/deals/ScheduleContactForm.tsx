@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Timestamp } from "firebase/firestore";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,13 +11,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Contact, DealScheduledContact } from "@/types";
+import { Contact } from "@/types";
 import { Calendar, Clock } from "lucide-react";
+import { toast } from "sonner";
 
 interface ScheduleContactFormProps {
   dealId: string;
   contacts: Contact[];
-  onSubmit: (scheduled: Omit<DealScheduledContact, "id" | "createdAt" | "updatedAt">) => Promise<void>;
+  onSubmit: (scheduled: any) => Promise<void>;
   onCancel: () => void;
 }
 
@@ -48,6 +50,9 @@ export function ScheduleContactForm({
       const scheduledDate = new Date(formData.date);
       scheduledDate.setHours(parseInt(hours), parseInt(minutes), 0);
 
+      // Converter para Timestamp do Firebase
+      const timestamp = Timestamp.fromDate(scheduledDate);
+
       await onSubmit({
         dealId,
         contactId: formData.contactId,
@@ -55,9 +60,11 @@ export function ScheduleContactForm({
         type: formData.type,
         subject: formData.subject,
         notes: formData.notes || undefined,
-        scheduledFor: scheduledDate,
+        scheduledFor: timestamp as any,
         status: "pending",
       });
+
+      toast.success("Contato agendado com sucesso!");
 
       setFormData({
         contactId: "",
@@ -67,6 +74,9 @@ export function ScheduleContactForm({
         date: "",
         time: "",
       });
+    } catch (error) {
+      console.error("Erro ao agendar contato:", error);
+      toast.error("Erro ao agendar contato");
     } finally {
       setIsSubmitting(false);
     }

@@ -10,13 +10,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Contact, DealContactLog } from "@/types";
+import { Contact } from "@/types";
 import { Phone, Mail, MessageSquare, Calendar } from "lucide-react";
 
 interface ContactLogFormProps {
   dealId: string;
   contacts: Contact[];
-  onSubmit: (log: Omit<DealContactLog, "id" | "createdAt">) => Promise<void>;
+  onSubmit: (log: any) => Promise<void>;
   onCancel: () => void;
 }
 

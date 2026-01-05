@@ -12,11 +12,10 @@ import {
   Timestamp 
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { DealContactLog, DealScheduledContact } from "@/types";
 
 export function useDealCommunications(dealId: string) {
-  const [contactLogs, setContactLogs] = useState<DealContactLog[]>([]);
-  const [scheduledContacts, setScheduledContacts] = useState<DealScheduledContact[]>([]);
+  const [contactLogs, setContactLogs] = useState<any[]>([]);
+  const [scheduledContacts, setScheduledContacts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -36,7 +35,7 @@ export function useDealCommunications(dealId: string) {
         const logs = snapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
-        } as DealContactLog));
+        }));
         setContactLogs(logs);
         setLoading(false);
       },
@@ -66,7 +65,7 @@ export function useDealCommunications(dealId: string) {
         const scheduled = snapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
-        } as DealScheduledContact));
+        }));
         setScheduledContacts(scheduled);
       },
       (err) => {
@@ -78,7 +77,7 @@ export function useDealCommunications(dealId: string) {
   }, [dealId]);
 
   // Adicionar log de contato
-  const addContactLog = async (log: Omit<DealContactLog, "id" | "createdAt">) => {
+  const addContactLog = async (log: any) => {
     try {
       await addDoc(collection(db, "dealContactLogs"), {
         ...log,
@@ -92,9 +91,7 @@ export function useDealCommunications(dealId: string) {
   };
 
   // Agendar contato
-  const scheduleContact = async (
-    scheduled: Omit<DealScheduledContact, "id" | "createdAt" | "updatedAt">
-  ) => {
+  const scheduleContact = async (scheduled: any) => {
     try {
       await addDoc(collection(db, "dealScheduledContacts"), {
         ...scheduled,
@@ -110,7 +107,7 @@ export function useDealCommunications(dealId: string) {
   // Atualizar contato agendado
   const updateScheduledContact = async (
     id: string,
-    updates: Partial<DealScheduledContact>
+    updates: any
   ) => {
     try {
       const docRef = doc(db, "dealScheduledContacts", id);
