@@ -345,7 +345,7 @@ export default function Deals() {
                       contacts={companyContacts}
                       onAddContact={addContact}
                       onEditContact={updateContact}
-                      onDeleteContact={deleteContact}
+                      onDeleteContact={async (id) => await deleteContact(id)}
                     />
                   ) : (
                     <p className="text-muted-foreground text-center py-8">

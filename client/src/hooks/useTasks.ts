@@ -50,11 +50,9 @@ export function useTasks(filter?: { status?: string; priority?: string }) {
         updatedAt: serverTimestamp()
       });
       toast.success("Tarefa criada com sucesso!");
-      return true;
     } catch (error) {
       console.error("Error adding task:", error);
       toast.error("Erro ao criar tarefa.");
-      return false;
     }
   };
 
@@ -66,11 +64,9 @@ export function useTasks(filter?: { status?: string; priority?: string }) {
         updatedAt: serverTimestamp()
       });
       // toast.success("Tarefa atualizada com sucesso!");
-      return true;
     } catch (error) {
       console.error("Error updating task:", error);
       toast.error("Erro ao atualizar tarefa.");
-      return false;
     }
   };
 
@@ -80,11 +76,9 @@ export function useTasks(filter?: { status?: string; priority?: string }) {
     try {
       await deleteDoc(doc(db, "tasks", id));
       toast.success("Tarefa excluída com sucesso!");
-      return true;
     } catch (error) {
       console.error("Error deleting task:", error);
       toast.error("Erro ao excluir tarefa.");
-      return false;
     }
   };
 

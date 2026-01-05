@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
   DollarSign, 
@@ -7,10 +8,43 @@ import {
   ArrowUpRight,
   ArrowDownRight
 } from "lucide-react";
+import { useTasks } from "@/hooks/useTasks";
+import { useDeals } from "@/hooks/useDeals";
+import { TaskCalendar } from "@/components/dashboard/TaskCalendar";
+import { UpcomingTasksList } from "@/components/dashboard/UpcomingTasksList";
+import { TaskEditModal } from "@/components/dashboard/TaskEditModal";
+import { RecentPipelineView } from "@/components/dashboard/RecentPipelineView";
+import { Task } from "@/types";
 
 export default function Home() {
+  const { tasks, updateTask, deleteTask } = useTasks();
+  const { deals } = useDeals();
+  
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
+
+  const handleTaskClick = (task: Task) => {
+    setSelectedTask(task);
+    setIsTaskModalOpen(true);
+  };
+
+  const handleTaskSave = async (updates: Partial<Task>) => {
+    if (selectedTask?.id) {
+      await updateTask(selectedTask.id, updates);
+    }
+  };
+
+  const handleStatusChange = async (taskId: string, status: Task["status"]) => {
+    await updateTask(taskId, { status });
+  };
+
+  const handleDeleteTask = async (taskId: string) => {
+    await deleteTask(taskId);
+  };
+
   return (
     <div className="space-y-8">
+      {/* Header */}
       <div>
         <h1 className="text-3xl font-display font-bold text-foreground">Dashboard</h1>
         <p className="text-muted-foreground mt-1">Visão geral da agência Insigne Eventos</p>
@@ -26,7 +60,9 @@ export default function Home() {
             <DollarSign className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">R$ 45.231,89</div>
+            <div className="text-2xl font-bold">
+              R$ {deals.reduce((sum, d) => sum + d.value, 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+            </div>
             <p className="text-xs text-muted-foreground mt-1 flex items-center text-emerald-600">
               <ArrowUpRight className="h-3 w-3 mr-1" />
               +20.1% este mês
@@ -42,7 +78,9 @@ export default function Home() {
             <Trello className="h-4 w-4 text-purple-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">12</div>
+            <div className="text-2xl font-bold">
+              {deals.filter((d) => d.status === "open").length}
+            </div>
             <p className="text-xs text-muted-foreground mt-1 flex items-center text-emerald-600">
               <ArrowUpRight className="h-3 w-3 mr-1" />
               +2 novos esta semana
@@ -53,14 +91,16 @@ export default function Home() {
         <Card className="glass hover:shadow-md transition-all duration-300">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Eventos no Mês
+              Tarefas Pendentes
             </CardTitle>
             <Calendar className="h-4 w-4 text-blue-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">4</div>
+            <div className="text-2xl font-bold">
+              {tasks.filter((t) => t.status !== "done").length}
+            </div>
             <p className="text-xs text-muted-foreground mt-1">
-              Próximo evento em 3 dias
+              {tasks.filter((t) => t.status === "todo").length} a fazer
             </p>
           </CardContent>
         </Card>
@@ -82,57 +122,56 @@ export default function Home() {
         </Card>
       </div>
 
-      {/* Recent Activity & Upcoming Events */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-        <Card className="col-span-4 glass">
-          <CardHeader>
-            <CardTitle>Funil de Vendas Recente</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="flex items-center justify-between p-4 rounded-lg bg-white/50 border border-white/20 hover:bg-white/80 transition-colors">
-                  <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
-                      C{i}
-                    </div>
-                    <div>
-                      <p className="font-medium">Cliente Exemplo {i}</p>
-                      <p className="text-sm text-muted-foreground">Evento Corporativo Anual</p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-bold">R$ 15.000,00</p>
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                      Em Negociação
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+      {/* Layout Principal: 3 Colunas */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Coluna Esquerda: Próximas Tarefas */}
+        <div className="lg:col-span-1">
+          <Card className="glass h-full">
+            <CardHeader>
+              <CardTitle className="text-base">Próximas Tarefas</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <UpcomingTasksList
+                tasks={tasks}
+                onTaskClick={handleTaskClick}
+                onStatusChange={handleStatusChange}
+                onDelete={handleDeleteTask}
+              />
+            </CardContent>
+          </Card>
+        </div>
 
-        <Card className="col-span-3 glass">
-          <CardHeader>
-            <CardTitle>Próximas Tarefas</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="flex items-start gap-3 pb-4 border-b border-border last:border-0 last:pb-0">
-                  <div className="w-2 h-2 mt-2 rounded-full bg-primary" />
-                  <div>
-                    <p className="text-sm font-medium">Enviar proposta revisada</p>
-                    <p className="text-xs text-muted-foreground">Para: Cliente Exemplo {i}</p>
-                    <p className="text-xs text-muted-foreground mt-1">Hoje, 14:00</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+        {/* Coluna Centro: Calendário */}
+        <div className="lg:col-span-2">
+          <Card className="glass">
+            <CardHeader>
+              <CardTitle className="text-base">Calendário de Tarefas</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <TaskCalendar
+                tasks={tasks}
+                onTaskClick={handleTaskClick}
+              />
+            </CardContent>
+          </Card>
+        </div>
       </div>
+
+      {/* Seção Inferior: Funil de Vendas */}
+      <div>
+        <RecentPipelineView deals={deals} />
+      </div>
+
+      {/* Modal de Edição de Tarefa */}
+      <TaskEditModal
+        task={selectedTask}
+        isOpen={isTaskModalOpen}
+        onClose={() => {
+          setIsTaskModalOpen(false);
+          setSelectedTask(null);
+        }}
+        onSave={handleTaskSave}
+      />
     </div>
   );
 }

@@ -47,7 +47,7 @@ export function useContacts(companyId?: string) {
     return () => unsubscribe();
   }, [companyId]);
 
-  const addContact = async (contact: Omit<Contact, "id" | "createdAt">) => {
+  const addContact = async (contact: Omit<Contact, "id" | "createdAt">): Promise<void> => {
     try {
       await addDoc(collection(db, "contacts"), {
         ...contact,
@@ -60,7 +60,7 @@ export function useContacts(companyId?: string) {
     }
   };
 
-  const updateContact = async (id: string, data: Partial<Contact>) => {
+  const updateContact = async (id: string, data: Partial<Contact>): Promise<void> => {
     try {
       const docRef = doc(db, "contacts", id);
       await updateDoc(docRef, data);
@@ -71,7 +71,7 @@ export function useContacts(companyId?: string) {
     }
   };
 
-  const deleteContact = async (id: string) => {
+  const deleteContact = async (id: string): Promise<void> => {
     if (!confirm("Tem certeza que deseja excluir este contato?")) return;
     
     try {
