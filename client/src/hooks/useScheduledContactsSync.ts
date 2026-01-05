@@ -1,5 +1,5 @@
-import { useEffect } from "react";
-import { collection, query, where, onSnapshot, addDoc, deleteDoc, doc, Timestamp, getDocs, updateDoc } from "firebase/firestore";
+import { useEffect, useRef } from "react";
+import { collection, query, where, onSnapshot, addDoc, deleteDoc, doc, Timestamp, getDocs, updateDoc, writeBatch } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
 /**
@@ -8,6 +8,8 @@ import { db } from "@/lib/firebase";
  * Quando um contato é deletado, a tarefa associada também é deletada
  */
 export function useScheduledContactsSync() {
+  const processedContactsRef = useRef<Set<string>>(new Set());
+
   useEffect(() => {
     // Listener para contatos agendados
     const q = query(collection(db, "dealScheduledContacts"));
@@ -15,12 +17,20 @@ export function useScheduledContactsSync() {
     const unsubscribe = onSnapshot(
       q,
       async (snapshot) => {
-        for (const change of snapshot.docChanges()) {
+        // Processar apenas mudanças, não o snapshot completo
+        const changes = snapshot.docChanges();
+        
+        for (const change of changes) {
           const scheduledContact = change.doc.data() as any;
           const scheduledContactId = change.doc.id;
 
+          // Evitar processar o mesmo contato múltiplas vezes
+          if (processedContactsRef.current.has(scheduledContactId) && change.type === "added") {
+            console.log("Contato agendado já foi processado:", scheduledContactId);
+            continue;
+          }
+
           if (change.type === "added") {
-            // Quando um contato é agendado, criar uma tarefa (se não existir)
             try {
               // Verificar se já existe uma tarefa para este dealScheduledContact
               const existingTasksQuery = query(
@@ -32,7 +42,7 @@ export function useScheduledContactsSync() {
 
               if (existingTasks.empty) {
                 // Tarefa não existe, criar nova
-                await addDoc(collection(db, "tasks"), {
+                const taskRef = await addDoc(collection(db, "tasks"), {
                   title: `Contato: ${scheduledContact.subject}`,
                   description: `Contato com ${scheduledContact.contactName} - ${scheduledContact.type === "phone" ? "Chamada" : scheduledContact.type === "email" ? "E-mail" : "Reunião"}${scheduledContact.notes ? `\n\nNotas: ${scheduledContact.notes}` : ""}`,
                   dueDate: scheduledContact.scheduledFor,
@@ -48,9 +58,13 @@ export function useScheduledContactsSync() {
                   updatedAt: Timestamp.now(),
                 });
 
-                console.log("Tarefa criada para contato agendado:", scheduledContact.subject);
+                // Marcar como processado
+                processedContactsRef.current.add(scheduledContactId);
+                console.log("Tarefa criada para contato agendado:", scheduledContactId, taskRef.id);
               } else {
-                console.log("Tarefa já existe para este contato agendado");
+                // Tarefa já existe, marcar como processado
+                processedContactsRef.current.add(scheduledContactId);
+                console.log("Tarefa já existe para contato agendado:", scheduledContactId);
               }
             } catch (error) {
               console.error("Erro ao criar tarefa para contato agendado:", error);
@@ -94,10 +108,15 @@ export function useScheduledContactsSync() {
               const tasksSnapshot = await getDocs(tasksQuery);
 
               // Deletar tarefas que correspondem ao contato agendado
+              const batch = writeBatch(db);
               for (const taskDoc of tasksSnapshot.docs) {
-                await deleteDoc(doc(db, "tasks", taskDoc.id));
-                console.log("Tarefa deletada:", taskDoc.id);
+                batch.delete(doc(db, "tasks", taskDoc.id));
               }
+              await batch.commit();
+
+              // Remover do conjunto de processados
+              processedContactsRef.current.delete(scheduledContactId);
+              console.log("Tarefa(s) deletada(s) para contato agendado:", scheduledContactId);
             } catch (error) {
               console.error("Erro ao deletar tarefa associada:", error);
             }

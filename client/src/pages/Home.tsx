@@ -26,11 +26,16 @@ export default function Home() {
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
 
   const handleTaskClick = (task: Task) => {
+    console.log("Task clicked:", task);
+    console.log("Task relatedTo:", task.relatedTo);
+    
     // Se a tarefa está relacionada a um deal (contato agendado)
     if (task.relatedTo?.type === "deal" && task.relatedTo?.id) {
+      console.log("Navigating to deals with dealId:", task.relatedTo.id);
       // Navegar para a página de Deals com o deal selecionado
       setLocation(`/deals?dealId=${task.relatedTo.id}`);
     } else {
+      console.log("Opening task edit modal");
       // Abrir modal de edição de tarefa
       setSelectedTask(task);
       setIsTaskModalOpen(true);

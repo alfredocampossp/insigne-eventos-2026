@@ -46,15 +46,26 @@ export default function Deals() {
   
   // Se houver dealId na URL, abrir o modal com esse deal
   useEffect(() => {
+    console.log("dealIdFromUrl:", dealIdFromUrl);
+    console.log("deals.length:", deals.length);
+    
     if (dealIdFromUrl && deals.length > 0) {
       const deal = deals.find(d => d.id === dealIdFromUrl);
+      console.log("Found deal:", deal);
+      
       if (deal) {
+        console.log("Setting editingDeal and opening dialog");
         setEditingDeal(deal);
         setIsDialogOpen(true);
       }
     }
   }, [dealIdFromUrl, deals]);
-  const [activeTab, setActiveTab] = useState("info");
+  
+  useEffect(() => {
+    console.log("isDialogOpen:", isDialogOpen);
+    console.log("editingDeal:", editingDeal);
+  }, [isDialogOpen, editingDeal]);
+  const [activeTab, setActiveTab] = useState("agenda"); // Abrir na aba Agenda por padrão para contatos agendados
   const [showContactForm, setShowContactForm] = useState(false);
   const [showScheduleForm, setShowScheduleForm] = useState(false);
   
