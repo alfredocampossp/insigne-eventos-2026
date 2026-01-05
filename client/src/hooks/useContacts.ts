@@ -54,11 +54,9 @@ export function useContacts(companyId?: string) {
         createdAt: serverTimestamp()
       });
       toast.success("Contato adicionado com sucesso!");
-      return true;
     } catch (error) {
       console.error("Error adding contact:", error);
       toast.error("Erro ao adicionar contato.");
-      return false;
     }
   };
 
@@ -67,11 +65,9 @@ export function useContacts(companyId?: string) {
       const docRef = doc(db, "contacts", id);
       await updateDoc(docRef, data);
       toast.success("Contato atualizado com sucesso!");
-      return true;
     } catch (error) {
       console.error("Error updating contact:", error);
       toast.error("Erro ao atualizar contato.");
-      return false;
     }
   };
 
@@ -81,11 +77,9 @@ export function useContacts(companyId?: string) {
     try {
       await deleteDoc(doc(db, "contacts", id));
       toast.success("Contato excluído com sucesso!");
-      return true;
     } catch (error) {
       console.error("Error deleting contact:", error);
       toast.error("Erro ao excluir contato.");
-      return false;
     }
   };
 

@@ -110,3 +110,51 @@ export interface FinancialRecord {
   createdAt: any;
   updatedAt: any;
 }
+
+// Tipos para o sistema de contatos e comunicações no modal de Negócios
+export interface DealContactLog {
+  id?: string;
+  dealId: string;
+  contactId: string;
+  contactName: string;
+  type: "phone" | "email" | "meeting" | "message";
+  subject?: string;
+  notes: string;
+  duration?: number; // em minutos, para chamadas
+  timestamp: any; // Firestore Timestamp
+  createdAt: any;
+}
+
+export interface DealScheduledContact {
+  id?: string;
+  dealId: string;
+  contactId: string;
+  contactName: string;
+  scheduledFor: any; // Firestore Timestamp
+  type: "phone" | "email" | "meeting";
+  subject: string;
+  notes?: string;
+  status: "pending" | "completed" | "cancelled";
+  completedAt?: any;
+  createdAt: any;
+  updatedAt: any;
+}
+
+export interface DealCommunicationThread {
+  id?: string;
+  dealId: string;
+  contactId: string;
+  contactName: string;
+  subject: string;
+  messages: {
+    id: string;
+    sender: "user" | "contact";
+    senderName: string;
+    content: string;
+    timestamp: any;
+    attachments?: string[]; // URLs de anexos
+  }[];
+  lastMessageAt: any;
+  createdAt: any;
+  updatedAt: any;
+}
