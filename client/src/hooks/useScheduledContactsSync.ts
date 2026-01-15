@@ -6,9 +6,11 @@ import { db } from "@/lib/firebase";
  * Hook que sincroniza contatos agendados (dealScheduledContacts) com tarefas (tasks)
  * Quando um contato é agendado, uma tarefa é criada automaticamente (se não existir)
  * Quando um contato é deletado, a tarefa associada também é deletada
+ * Quando uma tarefa é deletada, o contato agendado também é deletado
  */
 export function useScheduledContactsSync() {
   const processedContactsRef = useRef<Set<string>>(new Set());
+  const cleanupIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     // Listener para contatos agendados
@@ -128,6 +130,48 @@ export function useScheduledContactsSync() {
       }
     );
 
-    return () => unsubscribe();
+    // Limpeza periódica de tarefas órfãs (a cada 5 minutos)
+    cleanupIntervalRef.current = setInterval(async () => {
+      try {
+        // Buscar todos os contatos agendados
+        const scheduledContactsSnapshot = await getDocs(collection(db, "dealScheduledContacts"));
+        const scheduledContactIds = new Set(
+          scheduledContactsSnapshot.docs.map(doc => doc.id)
+        );
+
+        // Buscar todas as tarefas de contato
+        const tasksSnapshot = await getDocs(collection(db, "tasks"));
+        
+        // Encontrar e deletar tarefas órfãs
+        const batch = writeBatch(db);
+        let orphanCount = 0;
+
+        for (const taskDoc of tasksSnapshot.docs) {
+          const task = taskDoc.data();
+          const scheduledContactId = task.relatedTo?.scheduledContactId;
+
+          // Se a tarefa tem um scheduledContactId que não existe mais, é órfã
+          if (scheduledContactId && !scheduledContactIds.has(scheduledContactId)) {
+            console.log("Deletando tarefa órfã:", taskDoc.id, "ScheduledContactId:", scheduledContactId);
+            batch.delete(doc(db, "tasks", taskDoc.id));
+            orphanCount++;
+          }
+        }
+
+        if (orphanCount > 0) {
+          await batch.commit();
+          console.log(`Limpeza de tarefas órfãs: ${orphanCount} tarefas deletadas`);
+        }
+      } catch (error) {
+        console.error("Erro ao limpar tarefas órfãs:", error);
+      }
+    }, 5 * 60 * 1000); // 5 minutos
+
+    return () => {
+      unsubscribe();
+      if (cleanupIntervalRef.current) {
+        clearInterval(cleanupIntervalRef.current);
+      }
+    };
   }, []);
 }
